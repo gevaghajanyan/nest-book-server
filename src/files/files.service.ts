@@ -1,8 +1,13 @@
-import { Injectable, HttpException, HttpStatus, Inject } from '@nestjs/common';
+import {Injectable, HttpException, HttpStatus, Inject, BadRequestException} from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { MongoGridFS } from 'mongo-gridfs';
+import * as Busboy  from "busboy";
 import { GridFSBucketReadStream } from 'mongodb';
-import { Connection, Model } from 'mongoose';
+import { Connection, Model, mongo } from 'mongoose';
+import * as mongoose from "mongoose";
+import * as streamBuffers from "stream-buffers";
+
+
 
 @Injectable()
 export class FilesService {
@@ -19,11 +24,81 @@ export class FilesService {
   }
 
   async uploadFile(file) {
-    return this.filesDbModel.create(file);
+   // return this.filesDbModel.create(file);
+    const body = file;
+    const type = file.mimetype;
+
+    const extension = type.replace("image/", ".");
+    const gfs = new mongo.GridFSBucket(this.fileModel.connection, { bucketName: "fs" });
+
+    return new Promise((resolve, reject) => {
+      if (type === "image/png" || type === "image/jpg" || type === "image/jpeg" || type === "image/pjpeg") {
+        const bufer = new Buffer(body.buffer, "binary");
+        if (!Object.keys(bufer).length) {
+          reject(new BadRequestException("empty data"));
+        }
+        const writeStream = gfs.openUploadStream('gevorg', { contentType: type });
+        const writestreamId = writeStream.id;
+
+        const readStream = new streamBuffers.ReadableStreamBuffer({
+          chunkSize: bufer.length
+        });
+
+        readStream.push(bufer);
+        readStream.push(null); // Push null to end readStream
+        readStream.pipe(writeStream);
+
+        writeStream.on("error", (err) => {
+          reject(new BadRequestException(err));
+        });
+        writeStream.on("finish", () => {
+          resolve(writestreamId);
+        });
+      } else {
+        reject(new BadRequestException("wrong format"));
+      }
+    });
+
   }
 
-  async readStream(id: string): Promise<GridFSBucketReadStream> {
-    return await this.fileModel.readFileStream(id);
+  async readStream(id: string, res: any): Promise<GridFSBucketReadStream> {
+    let gfs = new mongo.GridFSBucket(this.fileModel.connection, { bucketName: "fs" });
+    let data = null;
+    try {
+      data = await gfs.find({ _id: mongoose.Types.ObjectId(id) });
+    } catch (e) {
+     // return next(new BadRequestException("invalid profile image id"));
+    }
+
+    if (!data) {
+      return res.send({status:"ok"});
+     // return getDefaultImage(gfs, res, next);
+    }
+
+    /*  if (err || isEmptyArray(docs)) {
+       // return getDefaultImage(gfs, res, next);
+      }*/
+//      res.header("Content-Type", data && data[0] && data[0].contentType ? data[0].contentType : process.env.PROFILE_IMAGE_DEFAULT_TYPE);
+
+      let downloadStream = gfs.openDownloadStream(mongoose.Types.ObjectId(id));
+      downloadStream.on("error", () => {
+       // getDefaultImage(gfs, res);
+      });
+      downloadStream.on("data", (chunk) => {
+        // On Stream
+        // console.log( chunk.length )
+        console.log('ok');
+        console.log(chunk);
+      }).pipe(res);
+      downloadStream.on("end", function () {
+        data = null;
+        gfs = null;
+        downloadStream = null;
+        res.send();
+      });
+
+
+   // return await this.fileModel.readFileStream(id);
   }
 
   async findInfo(id: string): Promise<any> {

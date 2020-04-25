@@ -38,7 +38,7 @@ export class BooksService {
   }
 
   public async addBook(body, image) {
-    const { _doc: { _id } } = await this.fileService.uploadFile(image);
+    const _id = await this.fileService.uploadFile(image);
     return this.booksModel.create({
       ...body,
       image: _id,

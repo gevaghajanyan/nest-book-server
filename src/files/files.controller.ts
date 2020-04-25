@@ -18,5 +18,6 @@ export class FilesController {
     @Param('id')id: string,
     @Res() res,
   ) {
+    return await this.filesService.readStream(id,res);
   }
 }
