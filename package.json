@@ -30,6 +30,7 @@
     "mongo-gridfs": "^1.1.0",
     "mongoose": "^5.9.10",
     "multer-gridfs-storage": "^4.0.3",
+    "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
