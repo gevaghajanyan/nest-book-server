@@ -3,16 +3,19 @@ import {
   Inject,
   UseInterceptors,
   Body,
-  UploadedFile,
+  Param,
+  Query,
+  UploadedFiles,
   Delete,
   Get,
-  Post, Req, UploadedFiles,
+  Post,
+  Put,
 } from '@nestjs/common';
-import { ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 import { BooksService } from './books.service';
-import { FilesService } from '../files/files.service';
+import { GetBookQueryDto } from './dto/get-book-query.dto';
 
 @ApiTags('books')
 @Controller('books')
@@ -21,18 +24,36 @@ export class BooksController {
   private readonly booksService: BooksService;
 
   @Get()
-  public getBooks() {
-    return this.booksService.getBooks();
+  public async getBooks(
+    @Query() query: GetBookQueryDto,
+  ) {
+    const data = await this.booksService.getBooks(query);
+    const totalCount = await this.booksService.getTotalCount();
+    return {
+      data,
+      totalCount,
+    };
   }
 
   @Get('tops')
-  public getTopBooks() {
-    return null;
+  public getTopBooks(
+    @Query() query: GetBookQueryDto,
+  ) {
+    return this.booksService.getTopBooks(query);
+  }
+
+  @Get('last')
+  public getLastBooks(
+    @Query() query: GetBookQueryDto,
+  ) {
+    return this.booksService.getLastBooks(query);
   }
 
   @Get(':id')
-  public getBookById() {
-    return null;
+  public getBookById(
+    @Param('id') id: string,
+  ) {
+    return this.booksService.getBookById(id);
   }
 
   @Post()
@@ -41,11 +62,20 @@ export class BooksController {
     @UploadedFiles() files: any,
     @Body() body: any,
   ) {
-    return this.booksService.addBook(body, files[0]);
+    return this.booksService.addBook(body, files);
+  }
+
+  @Put(':id')
+  public editBook(
+    @Body() body: any,
+  ) {
+    return this.booksService.editBook(body);
   }
 
   @Delete(':id')
-  public deleteBook() {
-    return null;
+  public deleteBook(
+    @Param('id') id: string,
+  ) {
+    return this.booksService.deleteBook(id);
   }
 }

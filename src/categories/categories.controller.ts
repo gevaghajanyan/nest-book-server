@@ -6,6 +6,7 @@ import {
   Query,
   Delete,
   Post,
+  Put,
   Get,
 } from '@nestjs/common';
 import {
@@ -30,10 +31,18 @@ export class CategoriesController {
     type: CategoriesDto,
     isArray: true,
   })
-  public getCategories(
+  public async getCategories(
     @Query() query: CategoriesQueryDto,
-  ): Promise<CategoriesDto[]> {
-    return this.categoriesService.getCategories(query);
+  ): Promise<{
+    data: CategoriesDto[];
+    totalCount: number;
+  }> {
+    const data = await this.categoriesService.getCategories(query);
+    const totalCount = await this.categoriesService.getTotalCount();
+    return {
+      data,
+      totalCount,
+    };
   }
 
   @Post()
@@ -51,5 +60,16 @@ export class CategoriesController {
     @Param('id') id: string,
   ) {
     return this.categoriesService.deleteCategory(id);
+  }
+
+  @ApiParam({
+    name: 'id',
+  })
+  @Put(':id')
+  public editCategory(
+    @Param('id') id: string,
+    @Body() body: CreateCategoriesDto,
+  ) {
+    return this.categoriesService.editCategory(id, body);
   }
 }

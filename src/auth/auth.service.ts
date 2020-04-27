@@ -1,6 +1,6 @@
 import {
   Injectable,
-  Inject,
+  Inject, BadRequestException, NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
@@ -19,20 +19,20 @@ export class AuthService {
   public async signIn({ email, password }) {
     const client = await this.usersService.findOne(email);
     if (!client) {
-      return 'error';
+      throw new NotFoundException('INVAlID_USER_NAME');
     }
     const { password: clientPassword } = client;
     if (AuthService.getHash(password) === clientPassword) {
       return this.login(client);
     }
-    return 'error';
+    return new NotFoundException('INVAlID_EMAIL_OR_PASSWORD');
   }
 
   public async signUp(body: SingUpDto) {
     const { email } = body;
     const client = await this.usersService.findOne(email);
     if (client) {
-      throw 'your email is registred';
+      throw new BadRequestException('INVAlID_USER_NAME');
     }
 
     return this.usersService.createUser(body);

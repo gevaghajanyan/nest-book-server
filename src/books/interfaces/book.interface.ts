@@ -11,4 +11,6 @@ export interface BookInterface extends Document {
   authors: string[]
   shortDescription: string;
   longDescription: string;
+  image: string;
+  file: string;
 }

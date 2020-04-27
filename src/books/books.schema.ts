@@ -5,6 +5,7 @@ export const BooksSchema = new mongoose.Schema({
   pageCount: Number,
   published: Date,
   image: Object,
+  file: Object,
   rate: Number,
   categories: Array,
   authors: Array,

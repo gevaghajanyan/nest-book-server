@@ -50,4 +50,9 @@ export class CreateBookDto {
     required: false,
   })
   image: any;
+
+  @ApiProperty({
+    required: false,
+  })
+  file: any;
 }

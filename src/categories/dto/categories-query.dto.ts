@@ -1,13 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { Pagination } from '../../models/global';
 
-export class CategoriesQueryDto {
-  @ApiProperty({
-    required: false,
-  })
-  page?: number;
-
-  @ApiProperty({
-    required: false,
-  })
-  count?: number;
+export class CategoriesQueryDto extends Pagination {
 }

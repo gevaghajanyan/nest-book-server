@@ -1,12 +1,11 @@
-import {Injectable, HttpException, HttpStatus, Inject, BadRequestException} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Inject, BadRequestException } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { MongoGridFS } from 'mongo-gridfs';
-import * as Busboy  from "busboy";
+import * as Busboy from 'busboy';
 import { GridFSBucketReadStream } from 'mongodb';
 import { Connection, Model, mongo } from 'mongoose';
-import * as mongoose from "mongoose";
-import * as streamBuffers from "stream-buffers";
-
+import * as mongoose from 'mongoose';
+import * as streamBuffers from 'stream-buffers';
 
 
 @Injectable()
@@ -24,81 +23,68 @@ export class FilesService {
   }
 
   async uploadFile(file) {
-   // return this.filesDbModel.create(file);
-    const body = file;
-    const type = file.mimetype;
+    const {
+      buffer: body,
+      mimetype: type,
+      originalname,
+    } = file;
 
-    const extension = type.replace("image/", ".");
-    const gfs = new mongo.GridFSBucket(this.fileModel.connection, { bucketName: "fs" });
+    const gfs = new mongo.GridFSBucket(this.fileModel.connection, { bucketName: 'fs' });
 
     return new Promise((resolve, reject) => {
-      if (type === "image/png" || type === "image/jpg" || type === "image/jpeg" || type === "image/pjpeg") {
-        const bufer = new Buffer(body.buffer, "binary");
-        if (!Object.keys(bufer).length) {
-          reject(new BadRequestException("empty data"));
+      if (/.(png|jpg|jpeg|pjpeg|pdf)$/.test(type)) {
+        const buffer = new Buffer(body, 'binary');
+        if (!Object.keys(buffer).length) {
+          reject(new BadRequestException('EMPTY_DATA'));
         }
-        const writeStream = gfs.openUploadStream('gevorg', { contentType: type });
-        const writestreamId = writeStream.id;
+        const writeStream = gfs.openUploadStream(originalname, { contentType: type });
+        const writeStreamId = writeStream.id;
 
         const readStream = new streamBuffers.ReadableStreamBuffer({
-          chunkSize: bufer.length
+          chunkSize: buffer.length,
         });
 
-        readStream.push(bufer);
-        readStream.push(null); // Push null to end readStream
+        readStream.push(buffer);
+        readStream.push(null);
         readStream.pipe(writeStream);
 
-        writeStream.on("error", (err) => {
+        writeStream.on('error', (err) => {
           reject(new BadRequestException(err));
         });
-        writeStream.on("finish", () => {
-          resolve(writestreamId);
+        writeStream.on('finish', () => {
+          resolve(writeStreamId);
         });
       } else {
-        reject(new BadRequestException("wrong format"));
+        reject(new BadRequestException('WRONG_FORMAT'));
       }
     });
 
   }
 
   async readStream(id: string, res: any): Promise<GridFSBucketReadStream> {
-    let gfs = new mongo.GridFSBucket(this.fileModel.connection, { bucketName: "fs" });
+    let gfs = new mongo.GridFSBucket(this.fileModel.connection, { bucketName: 'fs' });
     let data = null;
     try {
       data = await gfs.find({ _id: mongoose.Types.ObjectId(id) });
     } catch (e) {
-     // return next(new BadRequestException("invalid profile image id"));
+      throw new BadRequestException('INVALID_PROFILE_IMAGE_ID');
     }
 
     if (!data) {
-      return res.send({status:"ok"});
-     // return getDefaultImage(gfs, res, next);
+      return res.send({ status: 'ok' });
     }
+    let downloadStream = gfs.openDownloadStream(mongoose.Types.ObjectId(id));
 
-    /*  if (err || isEmptyArray(docs)) {
-       // return getDefaultImage(gfs, res, next);
-      }*/
-//      res.header("Content-Type", data && data[0] && data[0].contentType ? data[0].contentType : process.env.PROFILE_IMAGE_DEFAULT_TYPE);
+    downloadStream.on('data', (chunk) => {
+      console.log(chunk);
+    }).pipe(res);
 
-      let downloadStream = gfs.openDownloadStream(mongoose.Types.ObjectId(id));
-      downloadStream.on("error", () => {
-       // getDefaultImage(gfs, res);
-      });
-      downloadStream.on("data", (chunk) => {
-        // On Stream
-        // console.log( chunk.length )
-        console.log('ok');
-        console.log(chunk);
-      }).pipe(res);
-      downloadStream.on("end", function () {
-        data = null;
-        gfs = null;
-        downloadStream = null;
-        res.send();
-      });
-
-
-   // return await this.fileModel.readFileStream(id);
+    downloadStream.on('end', () => {
+      data = null;
+      gfs = null;
+      downloadStream = null;
+      res.send();
+    });
   }
 
   async findInfo(id: string): Promise<any> {

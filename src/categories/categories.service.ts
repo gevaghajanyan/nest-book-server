@@ -24,7 +24,7 @@ export class CategoriesService {
   }
 
   public getTotalCount() {
-    return null;
+    return this.categoryModel.count({}).then(Number);
   }
 
   public addCategory(body: CreateCategoriesDto) {
@@ -33,5 +33,11 @@ export class CategoriesService {
 
   public deleteCategory(id: string) {
     return this.categoryModel.deleteOne({ _id: id });
+  }
+
+  public editCategory(id: string, body: CreateCategoriesDto) {
+    return this.categoryModel.updateOne({
+      _id: id,
+    }, body);
   }
 }

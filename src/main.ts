@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
+import { TransformInterceptor } from './transform.interceptor';
+import { HttpExceptionFilter } from './http-exception.filter';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -14,6 +17,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
   app.enableCors();
+  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalFilters(new HttpExceptionFilter());
   await app.listen(3000);
 }
 bootstrap();
