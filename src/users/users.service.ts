@@ -3,6 +3,8 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Model } from 'mongoose';
+import { getHash } from '../code/helpers/paswortHash';
+import { UserInterface } from './interfaces/user.interface';
 
 @Injectable()
 export class UsersService {
@@ -21,9 +23,10 @@ export class UsersService {
     return this.usersModel.findOne({ email: email.toLowerCase() });
   }
 
-  public createUser(user: any) {
+  public createUser(user: UserInterface) {
     return this.usersModel.create({
       ...user,
+      password: getHash(user.password),
       email: user.email.toLowerCase(),
       created: new Date(),
     });

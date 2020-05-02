@@ -1,12 +1,14 @@
 import {
   Injectable,
-  Inject, BadRequestException, NotFoundException,
+  Inject,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as crypto from 'crypto';
 
 import { UsersService } from '../users/users.service';
 import { SingUpDto } from './dto/singUp.dto';
+import { getHash } from '../code/helpers/paswortHash';
 
 @Injectable()
 export class AuthService {
@@ -19,13 +21,13 @@ export class AuthService {
   public async signIn({ email, password }) {
     const client = await this.usersService.findOne(email);
     if (!client) {
-      throw new NotFoundException('INVAlID_USER_NAME');
+      throw new BadRequestException('INVAlID_USER_NAME');
     }
     const { password: clientPassword } = client;
-    if (AuthService.getHash(password) === clientPassword) {
+    if (getHash(password) === clientPassword) {
       return this.login(client);
     }
-    return new NotFoundException('INVAlID_EMAIL_OR_PASSWORD');
+    throw new BadRequestException('INVAlID_EMAIL_OR_PASSWORD');
   }
 
   public async signUp(body: SingUpDto) {
@@ -39,16 +41,9 @@ export class AuthService {
   }
 
   private async login(user: any) {
-    const payload = { username: user.email, sub: user._id };
+    const payload = { firstName: user.email, sub: user._id };
     return {
       accessToken: this.jwtService.sign(payload),
     };
-  }
-
-  static getHash(password: string): string {
-    return crypto
-      .createHmac('sha256', process.env.SECRET_KEY)
-      .update(password)
-      .digest('hex');
   }
 }

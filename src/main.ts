@@ -13,6 +13,11 @@ async function bootstrap() {
     .setDescription('The cats API description')
     .setVersion('1.0')
     .addTag('book')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+    }, 'header')
     .build();
   app.setGlobalPrefix('api');
   app.useGlobalInterceptors(new TransformInterceptor());
@@ -20,6 +25,7 @@ async function bootstrap() {
   app.enableCors();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('swagger', app, document);
+
   await app.listen(3000);
 }
 bootstrap();
