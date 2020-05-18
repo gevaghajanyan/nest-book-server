@@ -9,6 +9,7 @@ import { BooksModule } from './books/books.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { FilesModule } from './files/files.module';
     CategoriesModule,
     UsersModule,
     FilesModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [

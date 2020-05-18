@@ -5,6 +5,7 @@ import {
 import { Model } from 'mongoose';
 import { getHash } from '../code/helpers/paswortHash';
 import { UserInterface } from './interfaces/user.interface';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,10 @@ export class UsersService {
 
   public findOne(email: string) {
     return this.usersModel.findOne({ email: email.toLowerCase() });
+  }
+
+  public updateUserById(id: string, userBody: UpdateUserDto) {
+    return null;
   }
 
   public createUser(user: UserInterface) {

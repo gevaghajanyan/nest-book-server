@@ -11,11 +11,21 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 import { BooksService } from './books.service';
 import { GetBookQueryDto } from './dto/get-book-query.dto';
+import {
+  BookDataDto,
+  BookDto,
+} from './dto/book.dto';
+import { DeletedDto } from '../models/global';
+import { CreateBookDto } from './dto/create-book.dto';
 
 @ApiTags('books')
 @Controller('books')
@@ -24,6 +34,10 @@ export class BooksController {
   private readonly booksService: BooksService;
 
   @Get()
+  @ApiOkResponse({
+    schema: undefined,
+    type: BookDataDto,
+  })
   public async getBooks(
     @Query() query: GetBookQueryDto,
   ) {
@@ -36,6 +50,10 @@ export class BooksController {
   }
 
   @Get('tops')
+  @ApiOkResponse({
+    schema: undefined,
+    type: BookDataDto,
+  })
   public getTopBooks(
     @Query() query: GetBookQueryDto,
   ) {
@@ -43,6 +61,10 @@ export class BooksController {
   }
 
   @Get('last')
+  @ApiOkResponse({
+    schema: undefined,
+    type: BookDataDto,
+  })
   public getLastBooks(
     @Query() query: GetBookQueryDto,
   ) {
@@ -50,6 +72,10 @@ export class BooksController {
   }
 
   @Get(':id')
+  @ApiOkResponse({
+    schema: undefined,
+    type: BookDto,
+  })
   public getBookById(
     @Param('id') id: string,
   ) {
@@ -57,6 +83,14 @@ export class BooksController {
   }
 
   @Post()
+  @ApiBody({
+    type: CreateBookDto,
+    required: true,
+  })
+  @ApiOkResponse({
+    schema: undefined,
+    type: BookDto,
+  })
   @UseInterceptors(AnyFilesInterceptor())
   public addBook(
     @UploadedFiles() files: any,
@@ -66,6 +100,14 @@ export class BooksController {
   }
 
   @Put(':id')
+  @ApiBody({
+    type: CreateBookDto,
+    required: true,
+  })
+  @ApiOkResponse({
+    schema: undefined,
+    type: BookDto,
+  })
   public editBook(
     @Body() body: any,
   ) {
@@ -73,6 +115,10 @@ export class BooksController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({
+    schema: undefined,
+    type: DeletedDto,
+  })
   public deleteBook(
     @Param('id') id: string,
   ) {

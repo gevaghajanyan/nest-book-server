@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 import { BookInterface } from './interfaces/book.interface';
 import { FilesService } from '../files/files.service';
 import { GetBookQueryDto } from './dto/get-book-query.dto';
+import { DeletedDto } from '../models/global';
 
 @Injectable()
 export class BooksService {
@@ -46,7 +47,11 @@ export class BooksService {
   }
 
   public deleteBook(id: string) {
-    return this.booksModel.deleteOne({ _id: id });
+    return this.booksModel
+      .deleteOne({ _id: id })
+      .then(() => {
+        return new DeletedDto(id);
+      });
   }
 
   public editBook(body) {

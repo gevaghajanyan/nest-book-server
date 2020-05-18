@@ -1,7 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CategoriesDto } from '../../categories/dto/categories.dto';
 
-export class CreateBookDto {
+export class BookDto {
+  @ApiProperty({
+    required: true,
+    type: String,
+  })
+  _id: string;
+
   @ApiProperty({
     required: true,
     type: String,
@@ -40,13 +46,6 @@ export class CreateBookDto {
   categories: CategoriesDto[];
 
   @ApiProperty({
-    required: true,
-    type: String,
-    isArray: true,
-  })
-  authors: string[];
-
-  @ApiProperty({
     required: false,
     type: Number,
   })
@@ -63,4 +62,20 @@ export class CreateBookDto {
     type: String,
   })
   file: string;
+}
+
+export class BookDataDto {
+  @ApiProperty({
+    type: BookDto,
+    isArray: true,
+    required: true,
+  })
+  data: BookDto[];
+
+  @ApiProperty({
+    type: Number,
+    required: true,
+  })
+  totalCount: number;
+
 }
