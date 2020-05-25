@@ -18,7 +18,11 @@ import {
 import { CategoriesService } from './categories.service';
 import { CreateCategoriesDto } from './dto/create-categories.dto';
 import { CategoriesQueryDto } from './dto/categories-query.dto';
-import { CategoriesDto } from './dto/categories.dto';
+import {
+  CategoriesDto,
+  CategoriesList,
+} from './dto/categories.dto';
+import { DeletedDto } from '../models/global';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -28,8 +32,7 @@ export class CategoriesController {
 
   @Get()
   @ApiResponse({
-    type: CategoriesDto,
-    isArray: true,
+    type: CategoriesList,
   })
   public async getCategories(
     @Query() query: CategoriesQueryDto,
@@ -45,6 +48,10 @@ export class CategoriesController {
     };
   }
 
+  @ApiResponse({
+    type: CategoriesDto,
+    status: 201,
+  })
   @Post()
   public addCategory(
     @Body() body: CreateCategoriesDto,
@@ -55,15 +62,9 @@ export class CategoriesController {
   @ApiParam({
     name: 'id',
   })
-  @Delete(':id')
-  public deleteCategory(
-    @Param('id') id: string,
-  ) {
-    return this.categoriesService.deleteCategory(id);
-  }
-
-  @ApiParam({
-    name: 'id',
+  @ApiResponse({
+    type: CategoriesDto,
+    status: 200,
   })
   @Put(':id')
   public editCategory(
@@ -71,5 +72,19 @@ export class CategoriesController {
     @Body() body: CreateCategoriesDto,
   ) {
     return this.categoriesService.editCategory(id, body);
+  }
+
+  @ApiParam({
+    name: 'id',
+  })
+  @ApiResponse({
+    type: DeletedDto,
+    status: 200,
+  })
+  @Delete(':id')
+  public deleteCategory(
+    @Param('id') id: string,
+  ) {
+    return this.categoriesService.deleteCategory(id);
   }
 }

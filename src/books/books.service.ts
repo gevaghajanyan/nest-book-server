@@ -4,10 +4,11 @@ import {
 } from '@nestjs/common';
 import { Model } from 'mongoose';
 
-import { BookInterface } from './interfaces/book.interface';
+import { CategoriesService } from '../categories/categories.service';
 import { FilesService } from '../files/files.service';
 import { GetBookQueryDto } from './dto/get-book-query.dto';
 import { DeletedDto } from '../models/global';
+import { BookInterface } from './interfaces/book.interface';
 
 @Injectable()
 export class BooksService {
@@ -16,6 +17,9 @@ export class BooksService {
 
   @Inject()
   private readonly fileService: FilesService;
+
+  @Inject()
+  private readonly categoriesService: CategoriesService;
 
   public getBooks(query: GetBookQueryDto) {
     return BooksService.addPagination(
@@ -32,14 +36,14 @@ export class BooksService {
     return BooksService.addPagination(
       this.booksModel.find(),
       query,
-    ).sort({ rate: 1 });
+    ).sort({ rate: -1 });
   }
 
   public getLastBooks(query: GetBookQueryDto) {
     return BooksService.addPagination(
       this.booksModel.find(),
       query,
-    ).sort({ _id: 1 });
+    ).sort({ _id: -1 });
   }
 
   public getBookById(id: string) {
@@ -71,12 +75,39 @@ export class BooksService {
       file,
     } = uploadsFile;
 
-    const imageId = await this.fileService.uploadFile(image);
-    const fileId = await this.fileService.uploadFile(file);
+    const [
+      imageId,
+      fileId,
+    ] = await Promise.all([
+      this.fileService.uploadFile(image),
+      this.fileService.uploadFile(file),
+    ]);
+
+    const categoriesList = await this.categoriesService.getCategories({});
+
+    let categories = [];
+
+    let {
+      categories: categoriesReq,
+    } = body;
+
+    categoriesReq = [].concat(categoriesReq);
+
+    if (Array.isArray(categoriesReq)) {
+      categories = categoriesReq.reduce((list, id) => {
+        const elem = categoriesList.find(({ _id }) => id === _id);
+        if (elem) {
+          return list.concat(elem);
+        }
+        return list;
+      }, categories);
+    }
+
     const book = {
       ...body,
       image: imageId,
       file: fileId,
+      categories,
     };
     return this.booksModel.create(book);
   }

@@ -14,6 +14,7 @@ import {
 import {
   ApiBody,
   ApiOkResponse,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
@@ -87,9 +88,9 @@ export class BooksController {
     type: CreateBookDto,
     required: true,
   })
-  @ApiOkResponse({
-    schema: undefined,
+  @ApiResponse({
     type: BookDto,
+    status: 201,
   })
   @UseInterceptors(AnyFilesInterceptor())
   public addBook(

@@ -12,8 +12,11 @@ export class CategoriesService {
   @Inject('CATEGORY_MODEL')
   private categoryModel: Model<any>;
 
-  public getCategories(params: CategoriesQueryDto) {
-    let { page, count } = params;
+  public getCategories(params: CategoriesQueryDto): Promise<any[]> {
+    let {
+      page,
+      count
+    } = params;
     page = Number(page);
     count = Number(count);
     return this.categoryModel
